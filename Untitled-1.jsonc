@@ -1,0 +1,16 @@
+{
+    "label": "hello",
+    "time": { // Convert the time to UTC timezone in Godot before sending >:(
+        "hours": 0,
+        "minutes": 0,
+        "period": 0 // 0 = AM; 1 = PM
+    },
+    // ["Discord", "Email?", "Phone Notif?", "Phone Call??", "Google Home???", "Desktop Notif????"]
+    "notifier": [
+        { // Discord
+            "mention": true,
+            "embed": true,
+            "send_amount": 3
+        }
+    ]
+}

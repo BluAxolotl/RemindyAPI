@@ -13,6 +13,8 @@ const pass = function(a){
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
+// Test >:)
+
 const ReminderSchema = mongoose.Schema({
     _id: mongoose.Types.ObjectId,
     label: String,

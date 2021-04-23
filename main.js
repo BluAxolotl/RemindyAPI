@@ -1,5 +1,7 @@
 const mongoose = require('mongoose')
+const uri = "mongodb+srv://BluAxolotl:Pacster3@cluster0.jp25a.mongodb.net/Remindy?retryWrites=true&w=majority"
 const express = require('express')
+const bcrypt = require('bcrypt');
 const app = express()
 const print = console.log
 const AM = 0
@@ -9,11 +11,12 @@ const pass = function(a){
     if (a != null)
         a.send()
 }
+const port = 300
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-// Test >:)
+// Schema & Models
 
 const ReminderSchema = mongoose.Schema({
     _id: mongoose.Types.ObjectId,
@@ -25,56 +28,64 @@ const ReminderSchema = mongoose.Schema({
 })
 const Reminder = mongoose.model('Reminder', ReminderSchema)
 
-app.post('/new', function (req, res) {
-    res.json(req.body)
-    print(req.body)
+const UserSchema = mongoose.Schema({
+    _id: mongoose.Types.ObjectId,
+		name: String,
+		pass: String,
+		reminders: Array, // [Object (reminder)]
+})
+const User = mongoose.model('User', UserSchema)
+
+// Post Request Handling
+
+// Default Gateway
+app.get('/', function (req, res) {
+	res.send("What are you doing here, this is the API for Remindy >:(")
 })
 
-app.get('/account-info', function (req, res) {
-    let info = {
-        name: "Shujo",
-        reminders:[
-            {
-                label:"Go to work",
-                time:{
-                    hour:5,
-                    minute:30,
-                    period:AM
-                }
-            },
-
-            {
-                label:"AP Philosophical Social Sciences Noting",
-                time:{
-                    hour:3,
-                    minute:30,
-                    period:PM
-                }
-            },
-
-            {
-                label:"Play Valorant",
-                time:{
-                    hour:5,
-                    minute:30,
-                    period:PM
-                }
-            },
-
-            {
-                label:"Oh yeah, I make music I guess",
-                time:{
-                    hour:8,
-                    minute:30,
-                    period:PM
-                }
-            },
-
-        ]
-    }
-    let myJSON = JSON.stringify(info)
-    print(myJSON)
-    res.json(info)
+// Signup
+app.post('/signup', function (req, res) {
+	let data = req.body
+	let pass = data.password
+	User.findOne({ name: data.username }, function (err, doc) {
+			if (doc == null) {
+				bcrypt.hash(pass, 10, function(err, hash) {
+						let new_account = new User({
+							_id: new mongoose.Types.ObjectId(),
+							name: data.username,
+							pass: hash,
+							reminder: []
+						})
+						new_account.save().then(saved_account => {
+							res.send('Account made successfully!')
+						})
+				})
+			} else {
+				res.send("Bad Username")
+			}
+	})
 })
 
+// Login
+app.post('/login', function (req, res) {
+	let data = req.body
+	let pass = data.password 
+	User.findOne({ name: data.username }, function (err, doc) {
+		if (doc != null) {
+			var hash = doc.pass
+			bcrypt.compare(pass, hash, function(err, result) {
+				if (result == true) {
+					res.send("Authentication Successful!")
+				} else {
+					res.send("Authentication Failed")
+				}
+			})
+		} else {
+			res.send("Bad Username")
+		}
+	});
+});
+
+mongoose.connect(uri, {useNewUrlParser: true, useUnifiedTopology: true})
 app.listen(3000)
+print(`API Operational on port ${port}`)
